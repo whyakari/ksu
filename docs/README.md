@@ -1,4 +1,4 @@
-**English** | [Español](README_ES.md) | [简体中文](README_CN.md) | [繁體中文](README_TW.md) | [日本語](README_JP.md) | [한국어](README_KR.md) | [Polski](README_PL.md) | [Português (Brasil)](README_PT-BR.md) | [Türkçe](README_TR.md) | [Русский](README_RU.md) | [Tiếng Việt](README_VI.md) | [Indonesia](README_ID.md) | [עברית](README_IW.md) | [हिंदी](README_IN.md)
+**English** | [日本語](README_JP.md)
 
 # KernelSU
 
@@ -22,9 +22,7 @@ A Kernel-based root solution for Android devices.
 
 KernelSU officially supports Android GKI 2.0 devices (kernel 5.10+). Older kernels (4.14+) are also compatible, but the kernel will have to be built manually.
 
-With this, WSA, ChromeOS, and container-based Android are all supported.
-
-Currently, only `arm64-v8a` and `x86_64` are supported.
+Currently, only `arm64-v8a` are supported.
 
 ## Usage
 
