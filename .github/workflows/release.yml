@@ -15,15 +15,11 @@ jobs:
   build-a13-kernel:
     uses: ./.github/workflows/build-kernel-a13.yml
     secrets: inherit
-  build-a14-kernel:
-    uses: ./.github/workflows/build-kernel-a14.yml
-    secrets: inherit
   release:
     needs:
       - build-manager
       - build-a12-kernel
       - build-a13-kernel
-      - build-a14-kernel
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
