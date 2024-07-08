@@ -18,9 +18,6 @@ jobs:
   build-a14-kernel:
     uses: ./.github/workflows/build-kernel-a14.yml
     secrets: inherit
-  build-wsa-kernel:
-    uses: ./.github/workflows/build-kernel-wsa.yml
-    secrets: inherit
   build-arcvm-kernel:
     uses: ./.github/workflows/build-kernel-arcvm.yml
     secrets: inherit
@@ -30,7 +27,6 @@ jobs:
       - build-a12-kernel
       - build-a13-kernel
       - build-a14-kernel
-      - build-wsa-kernel
       - build-arcvm-kernel
     runs-on: ubuntu-latest
     steps:
@@ -41,15 +37,6 @@ jobs:
           for dir in AnyKernel3-*; do
             if [ -d "$dir" ]; then
               echo "----- Zip $dir -----"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
-          done
-
-      - name: Zip WSA kernel
-        run: |
-          for dir in kernel-WSA-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
               (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
             fi
           done
@@ -74,6 +61,5 @@ jobs:
             android*-lkm/*_kernelsu.ko
             AnyKernel3-*.zip
             boot-images-*/Image-*/*.img.gz
-            kernel-WSA*.zip
             kernel-ARCVM*.zip
             ksud-*
