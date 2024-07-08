@@ -25,3 +25,4 @@ jobs:
         with:
           files: |
             manager/*.apk
+          token: ${{ secrets.TOKEN_GITHUB }}
