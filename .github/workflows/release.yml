@@ -18,16 +18,12 @@ jobs:
   build-a14-kernel:
     uses: ./.github/workflows/build-kernel-a14.yml
     secrets: inherit
-  build-arcvm-kernel:
-    uses: ./.github/workflows/build-kernel-arcvm.yml
-    secrets: inherit
   release:
     needs:
       - build-manager
       - build-a12-kernel
       - build-a13-kernel
       - build-a14-kernel
-      - build-arcvm-kernel
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
@@ -37,15 +33,6 @@ jobs:
           for dir in AnyKernel3-*; do
             if [ -d "$dir" ]; then
               echo "----- Zip $dir -----"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
-          done
-
-      - name: Zip ChromeOS ARCVM kernel
-        run: |
-          for dir in kernel-ARCVM-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
               (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
             fi
           done
@@ -61,5 +48,4 @@ jobs:
             android*-lkm/*_kernelsu.ko
             AnyKernel3-*.zip
             boot-images-*/Image-*/*.img.gz
-            kernel-ARCVM*.zip
             ksud-*
