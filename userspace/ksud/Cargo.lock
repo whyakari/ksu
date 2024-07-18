@@ -1829,7 +1829,7 @@ dependencies = [
 [[package]]
 name = "zip"
 version = "2.1.3"
-source = "git+https://github.com/zip-rs/zip2.git#1e7085fd10326752a9552a1ee921c2d15aedcc6a"
+source = "git+https://github.com/zip-rs/zip2.git#03dd55773ecf4d6bca2fd0c5054e0e4312ca5d5d"
 dependencies = [
  "arbitrary",
  "bzip2",
