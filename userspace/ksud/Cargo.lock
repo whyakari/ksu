@@ -910,7 +910,7 @@ dependencies = [
  "sha256",
  "tempdir",
  "which",
- "zip 2.1.6",
+ "zip 2.2.0",
  "zip-extensions",
 ]
 
@@ -1829,8 +1829,8 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.1.6"
-source = "git+https://github.com/zip-rs/zip2.git#af33ed343da5769e0587d638e435d67151990f10"
+version = "2.2.0"
+source = "git+https://github.com/zip-rs/zip2.git#6d3945645b7f3805068dd8c50d4fe56a66651069"
 dependencies = [
  "arbitrary",
  "bzip2",
