@@ -910,7 +910,7 @@ dependencies = [
  "sha256",
  "tempdir",
  "which",
- "zip 2.1.3",
+ "zip 2.2.0",
  "zip-extensions",
 ]
 
@@ -1800,28 +1800,6 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.1.3"
-source = "git+https://github.com/zip-rs/zip2.git#b61fd1198e76eed67a28e7ff33058e2a96a7df57"
-checksum = "b895748a3ebcb69b9d38dcfdf21760859a4b0d0b0015277640c2ef4c69640e6f"
-dependencies = [
- "arbitrary",
- "bzip2",
- "crc32fast",
- "crossbeam-utils",
- "deflate64",
- "displaydoc",
- "flate2",
- "indexmap",
- "lzma-rs",
- "memchr",
- "thiserror",
- "time",
- "zopfli",
- "zstd",
-]
-
-[[package]]
-name = "zip"
 version = "2.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40dd8c92efc296286ce1fbd16657c5dbefff44f1b4ca01cc5f517d8b7b3d3e2e"
@@ -1845,6 +1823,27 @@ dependencies = [
  "thiserror",
  "time",
  "zeroize",
+ "zopfli",
+ "zstd",
+]
+
+[[package]]
+name = "zip"
+version = "2.2.0"
+source = "git+https://github.com/zip-rs/zip2.git#06632924e81805742605cda313863b04dfaa1879"
+dependencies = [
+ "arbitrary",
+ "bzip2",
+ "crc32fast",
+ "crossbeam-utils",
+ "deflate64",
+ "displaydoc",
+ "flate2",
+ "indexmap",
+ "lzma-rs",
+ "memchr",
+ "thiserror",
+ "time",
  "zopfli",
  "zstd",
 ]
