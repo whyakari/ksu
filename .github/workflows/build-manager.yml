@@ -2,7 +2,7 @@ name: Build Manager
 
 on:
   push:
-    branches: [ "main", "ci" ]
+    branches: [ "main", "ci", "test" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - 'manager/**'
@@ -13,14 +13,10 @@ on:
     paths:
       - 'manager/**'
   workflow_call:
+  workflow_dispatch:
 
 jobs:
-  build-lkm:
-    uses: ./.github/workflows/build-lkm.yml
-    secrets: inherit
-
   build-ksud:
-    needs: build-lkm
     strategy:
       matrix:
         include:
@@ -28,24 +24,18 @@ jobs:
             os: ubuntu-latest
           - target: x86_64-linux-android
             os: ubuntu-latest
-          - target: x86_64-pc-windows-gnu # windows pc
-            os: ubuntu-latest
-          - target: x86_64-apple-darwin # Intel mac
-            os: macos-latest
-          - target: aarch64-apple-darwin # M chip mac
-            os: macos-latest
-          - target: aarch64-unknown-linux-musl # arm64 Linux
-            os: ubuntu-latest
           - target: x86_64-unknown-linux-musl # x86 Linux
             os: ubuntu-latest
     uses: ./.github/workflows/ksud.yml
     with:
       target: ${{ matrix.target }}
       os: ${{ matrix.os }}
+      pack_lkm: false
 
   build-manager:
     needs: build-ksud
     runs-on: ubuntu-latest
+    environment: signing
     defaults:
       run:
         working-directory: ./manager
@@ -68,15 +58,12 @@ jobs:
       - name: Write key
         if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/main' ) || github.ref_type == 'tag' }}
         run: |
-          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             {
-              echo KEYSTORE_PASSWORD='${{ secrets.KEYSTORE_PASSWORD }}'
-              echo KEY_ALIAS='${{ secrets.KEY_ALIAS }}'
-              echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}'
-              echo KEYSTORE_FILE='key.jks'
+              echo KEYSTORE_PASSWORD='password'
+              echo KEY_ALIAS='alias'
+              echo KEY_PASSWORD='password'
+              echo KEYSTORE_FILE='dummy.keystore'
             } >> gradle.properties
-            echo ${{ secrets.KEYSTORE }} | base64 -d > key.jks
-          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -86,8 +73,9 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-home-cache-cleanup: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Download arm64 ksud
         uses: actions/download-artifact@v4

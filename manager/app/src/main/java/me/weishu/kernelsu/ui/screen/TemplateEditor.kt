@@ -3,8 +3,12 @@ package me.weishu.kernelsu.ui.screen
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +26,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -37,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.result.ResultBackNavigator
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
@@ -51,8 +60,8 @@ import me.weishu.kernelsu.ui.viewmodel.toJSON
  * @author weishu
  * @date 2023/10/20.
  */
-@OptIn(ExperimentalComposeUiApi::class)
-@Destination
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@Destination<RootGraph>
 @Composable
 fun TemplateEditorScreen(
     navigator: ResultBackNavigator<Boolean>,
@@ -66,6 +75,8 @@ fun TemplateEditorScreen(
     var template by rememberSaveable {
         mutableStateOf(initialTemplate)
     }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     BackHandler {
         navigator.navigateBack(result = !readOnly)
@@ -106,12 +117,16 @@ fun TemplateEditorScreen(
                     } else {
                         Toast.makeText(context, saveTemplateFailed, Toast.LENGTH_SHORT).show()
                     }
-                })
+                },
+                scrollBehavior = scrollBehavior
+            )
         },
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
                 .pointerInteropFilter {
                     // disable click and ripple if readOnly
@@ -240,39 +255,44 @@ private fun TopBar(
     summary: String = "",
     onBack: () -> Unit,
     onDelete: () -> Unit = {},
-    onSave: () -> Unit = {}
+    onSave: () -> Unit = {},
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    TopAppBar(title = {
-        Column {
-            Text(title)
-            if (summary.isNotBlank()) {
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
+    TopAppBar(
+        title = {
+            Column {
+                Text(title)
+                if (summary.isNotBlank()) {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }, navigationIcon = {
+            IconButton(
+                onClick = onBack
+            ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
+        }, actions = {
+            if (readOnly) {
+                return@TopAppBar
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Filled.DeleteForever,
+                    contentDescription = stringResource(id = R.string.app_profile_template_delete)
                 )
             }
-        }
-    }, navigationIcon = {
-        IconButton(
-            onClick = onBack
-        ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
-    }, actions = {
-        if (readOnly) {
-            return@TopAppBar
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                Icons.Filled.DeleteForever,
-                contentDescription = stringResource(id = R.string.app_profile_template_delete)
-            )
-        }
-        IconButton(onClick = onSave) {
-            Icon(
-                imageVector = Icons.Filled.Save,
-                contentDescription = stringResource(id = R.string.app_profile_template_save)
-            )
-        }
-    })
+            IconButton(onClick = onSave) {
+                Icon(
+                    imageVector = Icons.Filled.Save,
+                    contentDescription = stringResource(id = R.string.app_profile_template_save)
+                )
+            }
+        },
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        scrollBehavior = scrollBehavior
+    )
 }
 
 @Composable
@@ -289,17 +309,14 @@ private fun TextEdit(
             value = text,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(label) },
-            suffix =
-            if (errorHint.isNotBlank()) {
-                {
+            suffix = {
+                if (errorHint.isNotBlank()) {
                     Text(
                         text = if (isError) errorHint else "",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-            } else {
-                null
             },
             isError = isError,
             keyboardOptions = KeyboardOptions(
@@ -314,7 +331,7 @@ private fun TextEdit(
 }
 
 private fun isValidTemplateId(id: String): Boolean {
-    return Regex("""^([A-Za-z]{1}[A-Za-z\d_]*\.)*[A-Za-z][A-Za-z\d_]*$""").matches(id)
+    return Regex("""^([A-Za-z][A-Za-z\d_]*\.)*[A-Za-z][A-Za-z\d_]*$""").matches(id)
 }
 
 private fun isTemplateExist(id: String): Boolean {

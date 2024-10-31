@@ -4,8 +4,12 @@ import android.net.Uri
 import android.os.Environment
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,8 +22,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,11 +38,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.Dispatchers
@@ -65,8 +75,9 @@ enum class FlashingStatus {
  * @author weishu
  * @date 2023/1/1.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Destination
+@Destination<RootGraph>
 fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
 
     var text by rememberSaveable { mutableStateOf("") }
@@ -76,6 +87,7 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     var flashing by rememberSaveable {
         mutableStateOf(FlashingStatus.FLASHING)
     }
@@ -121,7 +133,8 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                         file.writeText(logContent.toString())
                         snackBarHost.showSnackbar("Log saved to ${file.absolutePath}")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
@@ -139,8 +152,9 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                     text = { Text(text = reboot) },
                 )
             }
-
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHost) },
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         KeyEventBlocker {
             it.key == Key.VolumeDown || it.key == Key.VolumeUp
@@ -149,6 +163,7 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
             modifier = Modifier
                 .fillMaxSize(1f)
                 .padding(innerPadding)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(scrollState),
         ) {
             LaunchedEffect(text) {
@@ -202,7 +217,12 @@ fun flashIt(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(status: FlashingStatus, onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
+private fun TopBar(
+    status: FlashingStatus,
+    onBack: () -> Unit = {},
+    onSave: () -> Unit = {},
+    scrollBehavior: TopAppBarScrollBehavior? = null
+) {
     TopAppBar(
         title = {
             Text(
@@ -227,7 +247,9 @@ private fun TopBar(status: FlashingStatus, onBack: () -> Unit = {}, onSave: () -
                     contentDescription = "Localized description"
                 )
             }
-        }
+        },
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        scrollBehavior = scrollBehavior
     )
 }
 
